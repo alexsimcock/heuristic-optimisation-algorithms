@@ -1,0 +1,6 @@
+h cannot be odd or over 22 to start...
+bear in mind, that h is dependent on the goal node though...
+
+
+Take [[0, 8, 7], [6, 5, 4], [3, 2, 1]]
+output [[[8, 0, 7], [6, 5, 4], [3, 2, 1]],  [[6, 8, 7], [0, 5, 4], [3, 2, 1]]]
