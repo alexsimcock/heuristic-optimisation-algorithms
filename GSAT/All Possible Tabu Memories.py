@@ -76,7 +76,10 @@ if __name__ == "__main__":
     for flipped, child in start.children.items():
         print(f"Flipping {flipped} gives {child.x}, f-value: {sum(child.f_values)}")
     
-    print(f"X: {start_value}\nMemory: {memory}")    
+    # Expand only the best available ones...
+    
+    
+    print(f"X: {start_value}\nMemory: {memory}")
     # 1
     funcs = [("f" + str(i+1)) for i in range(len(functions))]
     print("\n|Var|" + "|".join(funcs) + "|h-val|")
