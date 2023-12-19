@@ -1,35 +1,5 @@
 from operator import attrgetter
 
-def get_neighbourhood(x, memory):
-    neighbourhood = []
-    copy = x.copy()    
-    flippable_bits = [i for i in range(len(memory)) if memory[i] == 0]
-
-    neighbourhood = {index: tuple(copy[:index] + [int(not(copy[index]))] + copy[index + 1:]) for index in flippable_bits}
-    return {flip_index: {"x": flipped_value, "f": eval(flipped_value), "h": sum(eval(flipped_value))} for flip_index, flipped_value in neighbourhood.items()}
-
-class TabuNode():
-    def __init__(self, x, memory):
-        self.x = x
-        self.f_values = eval(x)
-        
-        self.memory = memory
-        
-    def get_children(self):
-        def get_child_memory(flip_index):
-            # Reduce all memory by one and set flipped bit memory to 2
-            updated_memory = [bit - 1 for bit in self.memory]
-            updated_memory[flip_index] = 2
-            return updated_memory
-        
-        flippable_indices = [i for i in range(len(self.memory)) if self.memory[i] == 0]
-        flip_neighbours = {index: tuple(self.x[:index] + [int(not(self.x[index]))] + self.x[index + 1:]) for index in flippable_indices}
-        self.children = {index: TabuNode(neighbour, get_child_memory(index)) for index, neighbour in flip_neighbours.items()}
-        
-    def print_node(self):
-        print(f"X: {self.x}\nMemory: {self.memory}\nF-Value: {sum(self.f_values)}\nF: {self.f_values}")
-        
-        
 functions = {"f1": lambda x: not(x[0]) or not(x[1]) or not(x[2]),
              "f2": lambda x: (x[1]) or (x[2]),
              "f3": lambda x: (x[1]) or not(x[3]),
@@ -43,40 +13,70 @@ def eval(x):
     return {func_name: int(function(x)) for func_name, function in functions.items()}
 
 def unsolved_heuristic(x):
-    return len(eval(x)) - sum(eval(x))
+    return len(eval(x)) - sum(eval(x).values())
+
+def flip_bit(x, index):
+    return tuple([bit if bit_index != index else int(not(bit)) for bit_index, bit in enumerate(x)])
+        
+def get_neighbourhood(x, memory):
+    """
+    Return all possible bit flips with the resulting values, returned as a dictionary to help with retracing
+    """
+    flippable_bits = [i for i in range(len(memory)) if memory[i] == 0]
+    return {index: flip_bit(x, index) for index in flippable_bits}
+
+def get_minima(solution_dict, heuristic = unsolved_heuristic):
+    """
+    With a given heuristic returns ALL solutions that achieve the minimal (optimal) evaluation
+    """
+    best_eval = min([heuristic(solution) for solution in solution_dict.values()])
+    return {flip_index: solution for flip_index, solution in solution_dict.items() if heuristic(solution) == best_eval}
+
+class TabuNode():
+    def __init__(self, x, memory, memory_length = 2):
+        self.x = x
+        self.memory = memory
+        self.memory_length = memory_length
+        
+        self.h = unsolved_heuristic(x)
+        self.children = dict()
+        
+    # Children are generated only when specified, after initialisation, to avoid accidental recursion
+    def generate_children(self):
+        def update_memory(flip_index):
+            """Reduce all memory by one and set flipped bit memory to memory length"""
+            updated_memory = [bit_memory - 1 if bit_memory > 0 else 0 for bit_memory in self.memory]
+            updated_memory[flip_index] = self.memory_length
+            return updated_memory
+        
+        children = get_minima(get_neighbourhood(self.x, self.memory), unsolved_heuristic)
+        for index, child in children.items():
+            print(f"flipping {index} gives child {child}")
+        self.children = {index: TabuNode(child, update_memory(index), self.memory_length) for index, child in children.items()} 
 
 if __name__ == "__main__":
     # Initialise values
-    start_value = [0, 1, 0, 1]
-    memory = [0] * len(start_value)
+    x = (0, 1, 0, 1)
+    root_node = TabuNode(x, memory=[0] * len(x))
+    current_nodes = [root_node]
     
-    start = TabuNode(start_value, memory)
+    def generate_next_gen(root):
+        # i.e. 'if dictionary is empty'
+        if bool(root.children) is False:
+            print("generating...")
+            root.generate_children()
+            return
+        else:
+            print(f"{root.x} has pre-existing children:")
+            for child in root.children.values():
+                print(f"running function for child of {root.x}, {child.x}")
+                generate_next_gen(child)
     
-    # Could be done through recursion? One parameter being max-recursion depth...
-    step_counter = 0
-    current_nodes = [start]
-    while step_counter < 3:
-        step_counter += 1
-        
-        # 1 Get neighbours who are not in memory
-        for node in current_nodes:
-            node.get_children()
-            
-            # 2 Generate their h value
-            for flipped, child in node.children.items():
-                print(f"Flipping {flipped} gives {child.x}, f-value: {sum(child.f_values)}")
-            
-            # 3 Find expandable nodes per node in current nodes...
-            max_f = max([sum(child.f_values) for child in node.children])
-            expandable_kids = [child for child in node.children if sum(child.f_values) == max_f]
-            
-            current_nodes.append(expandable_kids) ##
-        
-        #print(f"X: {start_value}\nMemory: {memory}")
-        # 1
-        #funcs = [("f" + str(i+1)) for i in range(len(functions))]
-        #print("\n|Var|" + "|".join(funcs) + "|h-val|")
-        #print("|-" * (len(start_value) + 6) + "|")
-        #for flipped_bit, neighbour in get_neighbourhood(start_value, memory).items():
-            # 2
-        #    print("|" + "x" + str(flipped_bit + 1) + "|" + "|".join(map(str, map(int, neighbour["f"]))) + "|" + str(neighbour["h"]) + "|")
+    generate_next_gen(root_node)
+    generate_next_gen(root_node)
+    
+    #children_list = [value for value in root_node.children.values()]
+
+    # Problem with traversal resulting in incorrect printing of granchildren
+    # A depth first search is ideal or breadth first?
+    # I think to get all the nodes at one level (what we want) a breadth first will be ideal    
