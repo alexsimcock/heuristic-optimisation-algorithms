@@ -1,13 +1,18 @@
-from operator import attrgetter
+functionset1 = {"f1": lambda x: not(x[0]) or not(x[1]) or not(x[2]),
+                "f2": lambda x: (x[1]) or (x[2]),
+                "f3": lambda x: (x[1]) or not(x[3]),
+                "f4": lambda x: not(x[1]) or not(x[2]),
+                "f5": lambda x: not(x[2]) or not(x[3]),
+                "f6": lambda x: not(x[1]) or (x[3]),
+                "f7": lambda x: (x[2]) or (x[3]),
+                "f8": lambda x: (x[0]) or not(x[1]) or (x[2])}
 
-functions = {"f1": lambda x: not(x[0]) or not(x[1]) or not(x[2]),
-             "f2": lambda x: (x[1]) or (x[2]),
-             "f3": lambda x: (x[1]) or not(x[3]),
-             "f4": lambda x: not(x[1]) or not(x[2]),
-             "f5": lambda x: not(x[2]) or not(x[3]),
-             "f6": lambda x: not(x[1]) or (x[3]),
-             "f7": lambda x: (x[2]) or (x[3]),
-             "f8": lambda x: (x[0]) or not(x[1]) or (x[2])}
+functionset2 = {"f1": lambda x: (x[0]) or not(x[1]) or (x[2]),
+                "f2": lambda x: not(x[3]) or (x[4]),
+                "f3": lambda x: not(x[4]) or not(x[5]),
+                "f4": lambda x: (x[6])}
+
+functions = functionset2
 
 def eval(x):        
     return {func_name: int(function(x)) for func_name, function in functions.items()}
@@ -50,33 +55,35 @@ class TabuNode():
             return updated_memory
         
         children = get_minima(get_neighbourhood(self.x, self.memory), unsolved_heuristic)
-        for index, child in children.items():
-            print(f"flipping {index} gives child {child}")
+        #for index, child in children.items():
+            #print(f"flipping {index} gives child {child}")
         self.children = {index: TabuNode(child, update_memory(index), self.memory_length) for index, child in children.items()} 
 
 if __name__ == "__main__":
     # Initialise values
-    x = (0, 1, 0, 1)
+    x = (0, 1, 0, 1, 0, 1, 0)#(0, 1, 0, 1)
     root_node = TabuNode(x, memory=[0] * len(x))
     current_nodes = [root_node]
     
     def generate_next_gen(root):
         # i.e. 'if dictionary is empty'
         if bool(root.children) is False:
-            print("generating...")
             root.generate_children()
             return
         else:
-            print(f"{root.x} has pre-existing children:")
             for child in root.children.values():
-                print(f"running function for child of {root.x}, {child.x}")
                 generate_next_gen(child)
     
-    generate_next_gen(root_node)
-    generate_next_gen(root_node)
+    for i in range(3):
+        generate_next_gen(root_node)
     
-    #children_list = [value for value in root_node.children.values()]
-
-    # Problem with traversal resulting in incorrect printing of granchildren
-    # A depth first search is ideal or breadth first?
-    # I think to get all the nodes at one level (what we want) a breadth first will be ideal    
+    def return_layer(root, final_layer = None, layer_number = 0):
+        """Prints all nodes at a given layer, if not specified the deepest currently generated"""
+        if (bool(root.children) is False or layer_number == final_layer):
+            print(f"Value: {root.x}, Memory: {root.memory}")
+            return
+        else:
+            for child in root.children.values():
+                return_layer(child, final_layer, layer_number + 1)
+                
+    return_layer(root_node, 3)
