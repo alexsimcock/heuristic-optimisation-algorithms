@@ -1,3 +1,4 @@
+# TODO make function sets importable from another file
 functionset1 = {"f1": lambda x: not(x[0]) or not(x[1]) or not(x[2]),
                 "f2": lambda x: (x[1]) or (x[2]),
                 "f3": lambda x: (x[1]) or not(x[3]),
@@ -13,6 +14,8 @@ functionset2 = {"f1": lambda x: (x[0]) or not(x[1]) or (x[2]),
                 "f4": lambda x: (x[6])}
 
 functions = functionset2
+
+# TODO add function docstrings
 
 def eval(x):        
     return {func_name: int(function(x)) for func_name, function in functions.items()}
@@ -55,27 +58,26 @@ class TabuNode():
             return updated_memory
         
         children = get_minima(get_neighbourhood(self.x, self.memory), unsolved_heuristic)
-        #for index, child in children.items():
-            #print(f"flipping {index} gives child {child}")
-        self.children = {index: TabuNode(child, update_memory(index), self.memory_length) for index, child in children.items()} 
+        self.children = {index: TabuNode(child, update_memory(index), self.memory_length) for index, child in children.items()}
+        
+    def generate_next_tree_layer(self):
+        # i.e. 'if dictionary is empty'
+        if bool(self.children) is False:
+            self.generate_children()
+            return
+        else:
+            for child in self.children.values():
+                child.generate_next_tree_layer()
+                
+    def generate_tree(self, depth):
+        for layer_num in range(depth):
+            self.generate_next_tree_layer()
 
 if __name__ == "__main__":
     # Initialise values
-    x = (0, 1, 0, 1, 0, 1, 0)#(0, 1, 0, 1)
+    x = (0, 1, 0, 1, 0, 1, 0) #(0, 1, 0, 1)
     root_node = TabuNode(x, memory=[0] * len(x))
-    current_nodes = [root_node]
-    
-    def generate_next_gen(root):
-        # i.e. 'if dictionary is empty'
-        if bool(root.children) is False:
-            root.generate_children()
-            return
-        else:
-            for child in root.children.values():
-                generate_next_gen(child)
-    
-    for i in range(3):
-        generate_next_gen(root_node)
+    root_node.generate_tree(depth = 3)
     
     def return_layer(root, final_layer = None, layer_number = 0):
         """Prints all nodes at a given layer, if not specified the deepest currently generated"""
@@ -85,5 +87,14 @@ if __name__ == "__main__":
         else:
             for child in root.children.values():
                 return_layer(child, final_layer, layer_number + 1)
-                
-    return_layer(root_node, 3)
+    
+    #https://simonhessner.de/python-3-recursively-print-structured-tree-including-hierarchy-markers-using-depth-first-search/
+    def print_whole_tree(root, level = 0):
+        print("  " * level, "-", root.x)
+        for child in root.children.values():
+            print_whole_tree(child, level + 1)
+
+    print_whole_tree(root_node)
+    #return_layer(root_node, 3)
+    
+    # We can now print out the entire search tree, the flips taken to get to any one element? all possible memory outcomes
