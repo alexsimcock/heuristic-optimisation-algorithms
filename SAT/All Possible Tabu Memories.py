@@ -7,17 +7,20 @@ functionset1 = {"f1": lambda x: not(x[0]) or not(x[1]) or not(x[2]),
                 "f6": lambda x: not(x[1]) or (x[3]),
                 "f7": lambda x: (x[2]) or (x[3]),
                 "f8": lambda x: (x[0]) or not(x[1]) or (x[2])}
+x1 = (0, 1, 0, 1)
 
 functionset2 = {"f1": lambda x: (x[0]) or not(x[1]) or (x[2]),
                 "f2": lambda x: not(x[3]) or (x[4]),
                 "f3": lambda x: not(x[4]) or not(x[5]),
                 "f4": lambda x: (x[6])}
+x2 = (0, 1, 0, 1, 0, 1, 0)
 
 functions = functionset2
+x = x2
 
 # TODO add function docstrings
 
-def eval(x):        
+def eval(x):
     return {func_name: int(function(x)) for func_name, function in functions.items()}
 
 def unsolved_heuristic(x):
@@ -74,8 +77,9 @@ class TabuNode():
             self.generate_next_tree_layer()
 
 if __name__ == "__main__":
+    # TODO functions would be nice to have as a parameter of the node... Could this be given via inheritance i.e. we define a new class with these specific functions
+    
     # Initialise values
-    x = (0, 1, 0, 1, 0, 1, 0) #(0, 1, 0, 1)
     root_node = TabuNode(x, memory=[0] * len(x))
     root_node.generate_tree(depth = 3)
     
@@ -88,8 +92,14 @@ if __name__ == "__main__":
             for child in root.children.values():
                 return_layer(child, final_layer, layer_number + 1)
     
-    #https://simonhessner.de/python-3-recursively-print-structured-tree-including-hierarchy-markers-using-depth-first-search/
     def print_whole_tree(root, level = 0):
+        """Uses https://simonhessner.de/python-3-recursively-print-structured-tree-including-hierarchy-markers-using-depth-first-search/
+        Displays the whole tree in command line.
+
+        Args:
+            root (_type_): Node to .
+            level (int, optional): Current layer's depth. Defaults to 0.
+        """
         print("  " * level, "-", root.x)
         for child in root.children.values():
             print_whole_tree(child, level + 1)
