@@ -1,42 +1,12 @@
-# My personal solution to representing the graph!
-graph1 = {"Birmingham": {"Birmingham": 0,
-                        "Oxford": 79,
-                        "London": 126,
-                        "Cambridge": 100,
-                        "Newcastle": 206,
-                        "York": 132},
-         "Oxford":     {"Birmingham": 79,
-                        "Oxford": 0,
-                        "London": 60,
-                        "Cambridge": 85,
-                        "Newcastle": 267,
-                        "York": 194},
-         "London":     {"Birmingham": 126,
-                        "Oxford": 60,
-                        "London": 0,
-                        "Cambridge": 64,
-                        "Newcastle": 289,
-                        "York": 215},
-         "Cambridge":  {"Birmingham": 100,
-                        "Oxford": 85,
-                        "London": 64,
-                        "Cambridge": 0,
-                        "Newcastle": 229,
-                        "York": 156},
-         "Newcastle":  {"Birmingham": 206,
-                        "Oxford": 267,
-                        "London": 289,
-                        "Cambridge": 229,
-                        "Newcastle": 0,
-                        "York": 85},
-         "York":       {"Birmingham": 132,
-                        "Oxford": 194,
-                        "London": 215,
-                        "Cambridge": 156,
-                        "Newcastle": 85,
-                        "York": 0}}
-
-# Maybe a matrix representation would be more suitable?
+# My personal solution to representing the graph, should be a matrix instead
+graph = {
+    "Birmingham": {"Birmingham": 0, "Oxford": 79, "London": 126, "Cambridge": 100, "Newcastle": 206, "York": 132},
+    "Oxford":     {"Birmingham": 79, "Oxford": 0, "London": 60, "Cambridge": 85, "Newcastle": 267, "York": 194},
+    "London":     {"Birmingham": 126, "Oxford": 60, "London": 0, "Cambridge": 64, "Newcastle": 289, "York": 215},
+    "Cambridge":  {"Birmingham": 100, "Oxford": 85, "London": 64, "Cambridge": 0, "Newcastle": 229, "York": 156},
+    "Newcastle":  {"Birmingham": 206, "Oxford": 267, "London": 289, "Cambridge": 229, "Newcastle": 0, "York": 85},
+    "York":       {"Birmingham": 132, "Oxford": 194, "London": 215, "Cambridge": 156, "Newcastle": 85, "York": 0}
+    }
 
 def is_symmetric(graph):
     for node, neighbours in graph.items():
@@ -105,17 +75,10 @@ def create_symm_graph():
     arc = []
     for start_node in nodes:
         
-
         arcs = [start_node for start_node in graph]
 
         graph = {start_node: {end_node for end_node in nodes if end_node != start_node} for start_node in nodes}
-
-    
-
     return graph
-
-
 
 if __name__ == "__main__":
     print(create_symm_graph())
-
